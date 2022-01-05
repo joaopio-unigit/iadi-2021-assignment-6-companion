@@ -82,15 +82,15 @@ private fun addResponseToken(authentication: Authentication, response: HttpServl
         .signWith(SignatureAlgorithm.HS256, JWTSecret.KEY)
         .compact()
 
-    response.addHeader("Authorization", "Bearer $token")
-    response.addHeader("Content-Type", "applications/json")
     if (includeCredentials) {
-        val responseWrapper = response as ServletResponseWrapper
-        responseWrapper.response.resetBuffer()
         var authoritiesList = ""
-        auth.authorities.map { authoritiesList += "\"$it\"," }
+        auth.authorities.map { authoritiesList += "$it -" }
         authoritiesList = authoritiesList.subSequence(0, authoritiesList.length - 1) as String
-        responseWrapper.response.outputStream.write(("{\"username\": \"" + auth.name + "\", \"roles\": [" + authoritiesList + "], \"jwt\": \"" + token + "\"}").toByteArray())
+        val tokenWithInfo = "||" + token + "||" + auth.name + "||" + authoritiesList
+        response.addHeader("Authorization", "Bearer $tokenWithInfo")
+    }
+    else{
+        response.addHeader("Authorization", "Bearer $token")
     }
 }
 
